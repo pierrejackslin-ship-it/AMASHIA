@@ -1,34 +1,39 @@
 const express = require('express');
-const QRCode = require('qrcode');
+const { Client } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+// ================== WHATSAPP BOT ==================
+const client = new Client();
 
-// Generate QR code and provide it as an image
-app.get('/api/qr', async (req, res) => {
-    try {
-        const qrData = 'Your data to encode'; // replace with your data
-        const qrImage = await QRCode.toDataURL(qrData);
-        res.json({ qrImage });
-    } catch (err) {
-        res.status(500).send('Error generating QR code');
+client.on('qr', (qr) => {
+    console.log('Scan QR code anba a 👇');
+    qrcode.generate(qr, { small: true });
+});
+
+client.on('ready', () => {
+    console.log('✅ Bot WhatsApp konekte!');
+});
+
+client.on('message', (message) => {
+    if (message.body.toLowerCase() === 'hi') {
+        message.reply('Hello 👋 mwen la!');
     }
 });
 
-// Provide the status
-app.get('/api/status', (req, res) => {
-    res.json({ status: 'Server is running', availableCommands: ['start', 'stop'] });
+client.initialize();
+
+// ================== WEB SERVER ==================
+app.get('/', (req, res) => {
+    res.send('🤖 Bot WhatsApp ap mache!');
 });
 
-// Connection handling
+app.get('/status', (req, res) => {
+    res.json({ status: 'Bot ap mache' });
+});
+
 app.listen(PORT, () => {
-    console.log(`Web interface is available at http://localhost:${PORT}`);
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-    console.log('Shutting down gracefully...');
-    process.exit();
+    console.log(`🌐 Server ap mache sou http://localhost:${PORT}`);
 });
