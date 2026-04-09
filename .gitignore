@@ -1,6 +1,33 @@
+# Dependencies
+node_modules/
 
-# .v4p backup files
-*~.xml
+# Sessions (trè enpòtan pa upload sa)
+sessions/
+session/
 
-# Dynamic plugins .dll
+# Environment variables
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*~
+*.bak
+*.tmp
+
+# Build / cache
+dist/
+build/
+
+# Dynamic plugins / binaries
 bin/
+
+# IDE files
+.vscode/
+.idea/
