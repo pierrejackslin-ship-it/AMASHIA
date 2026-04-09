@@ -1,59 +1,134 @@
-const { default: makeWASocket, useMultiFileAuthState } = require('baileys');
-const qrcode = require('qrcode-terminal');
-const express = require('express');
+require("dotenv").config()
 
-const app = express();
-const PORT = 3000;
+const { 
+  default: makeWASocket, 
+  useMultiFileAuthState, 
+  DisconnectReason 
+} = require("@whiskeysockets/baileys")
 
-// ================== WHATSAPP BAILEYS ==================
+const P = require("pino")
+const axios = require("axios")
+
+const prefix = process.env.BOT_PREFIX || "."
+const botName = process.env.BOT_NAME || "AMASHIA MD BOT V.2"
+
 async function startBot() {
-    const { state, saveCreds } = await useMultiFileAuthState('auth_info');
+  const { state, saveCreds } = await useMultiFileAuthState(
+    process.env.SESSIONS_DIR || "sessions"
+  )
 
-    const sock = makeWASocket({
-        auth: state,
-        printQRInTerminal: true
-    });
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: true,
+    logger: P({ level: "silent" })
+  })
 
-    sock.ev.on('creds.update', saveCreds);
+  sock.ev.on("creds.update", saveCreds)
 
-    sock.ev.on('connection.update', (update) => {
-        const { connection, qr } = update;
+  sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
+    if (connection === "close") {
+      const shouldReconnect =
+        lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
 
-        if (qr) {
-            console.log('Scan QR code anba a 👇');
-            qrcode.generate(qr, { small: true });
-        }
+      if (shouldReconnect) startBot()
+    } else if (connection === "open") {
+      console.log("✅ Connected:", botName)
+    }
+  })
 
-        if (connection === 'open') {
-            console.log('✅ Bot konekte!');
-        }
+  sock.ev.on("messages.upsert", async ({ messages }) => {
+    const msg = messages[0]
+    if (!msg.message) return
 
-        if (connection === 'close') {
-            console.log('❌ Dekonekte... rekonekte');
-            startBot();
-        }
-    });
+    const from = msg.key.remoteJid
 
-    sock.ev.on('messages.upsert', async (m) => {
-        const msg = m.messages[0];
+    const body =
+      msg.message.conversation ||
+      msg.message.extendedTextMessage?.text ||
+      ""
 
-        if (!msg.message) return;
+    if (!body.startsWith(prefix)) return
 
-        const text = msg.message.conversation || '';
+    const args = body.slice(prefix.length).trim().split(" ")
+    const command = args.shift().toLowerCase()
 
-        if (text.toLowerCase() === 'hi') {
-            await sock.sendMessage(msg.key.remoteJid, { text: 'Hello 👋 mwen la!' });
-        }
-    });
+    try {
+
+      // 📋 MENU
+      if (command === "menu") {
+        await sock.sendMessage(from, {
+          text: `🤖 ${botName}
+
+Prefix: ${prefix}
+
+Commands:
+.menu
+.play <song>
+.tiktok <link>
+.lyrics <song>
+.trad <lang> <text>`
+        })
+      }
+
+      // 🎧 PLAY
+      if (command === "play") {
+        const query = args.join(" ")
+        const res = await axios.get(`https://api.lyrics.ovh/suggest/${query}`)
+        const data = res.data.data[0]
+
+        await sock.sendMessage(from, {
+          text: `🎧 Title: ${data.title}
+🎤 Artist: ${data.artist.name}
+🔗 ${data.preview}`
+        })
+      }
+
+      // 🎵 TIKTOK
+      if (command === "tiktok") {
+        const link = args[0]
+        const res = await axios.get(`https://api.tiklydown.me/api/download?url=${link}`)
+        const video = res.data.video.noWatermark
+
+        await sock.sendMessage(from, {
+          video: { url: video },
+          caption: "🎵 TikTok Download"
+        })
+      }
+
+      // 📝 LYRICS
+      if (command === "lyrics") {
+        const song = args.join(" ")
+        const res = await axios.get(`https://api.lyrics.ovh/v1/${song}`)
+
+        await sock.sendMessage(from, {
+          text: res.data.lyrics || "No lyrics found"
+        })
+      }
+
+      // 🌍 TRANSLATE
+      if (command === "trad") {
+        const lang = args[0]
+        const text = args.slice(1).join(" ")
+
+        const res = await axios.post("https://libretranslate.de/translate", {
+          q: text,
+          source: "auto",
+          target: lang,
+          format: "text"
+        })
+
+        await sock.sendMessage(from, {
+          text: `🌍 Translated:\n${res.data.translatedText}`
+        })
+      }
+
+    } catch (err) {
+      console.log(err)
+      await sock.sendMessage(from, {
+        text: "❌ Error occurred"
+      })
+    }
+  })
 }
 
-startBot();
-
-// ================== WEB SERVER ==================
-app.get('/', (req, res) => {
-    res.send('🤖 Bot Baileys ap mache!');
-});
-
-app.listen(PORT, () => {
-    console.log(`🌐 Server ap mache sou http://localhost:${PORT}`);
-});
+startBot()
