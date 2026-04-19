@@ -36,7 +36,7 @@ async function startBot() {
   // 🔄 CONNECTION HANDLER
   sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
     if (connection === "open") {
-      console.log("✅ Connected:", botName)
+      console.log(`✅ Connected: ${botName}`)
     }
 
     if (connection === "close") {
@@ -47,7 +47,7 @@ async function startBot() {
     }
   })
 
-  // 👋 WELCOME SYSTEM
+  // ================= WELCOME SYSTEM =================
   const welcomedUsers = new Set()
 
   sock.ev.on("messages.upsert", async ({ messages }) => {
@@ -61,30 +61,38 @@ async function startBot() {
       msg.message.extendedTextMessage?.text ||
       ""
 
-    // ================= WELCOME =================
+    // 👋 WELCOME MESSAGE (ONLY ONCE)
     if (!welcomedUsers.has(from)) {
       welcomedUsers.add(from)
 
       await sock.sendMessage(from, {
         text: `👋 HELLO!
 
-🤖 I am *${AMASHIA-MD-BOT-V2}*
+🤖 I am *${botName}*
 
-📌 I am here to help you with:
+📌 I am an automated WhatsApp assistant designed to help you with:
 
-🎧 Download music
-🎵 Download TikTok videos
-🌍 Translate text
-📝 Get song lyrics
-⚡ Auto bot features
+🎧 Music downloads
+🎵 TikTok downloads
+🌍 Text translation
+📝 Lyrics search
+⚡ Smart automation features
 
-📋 Type *.menu* to see all commands
+👥 COMMUNITY LINKS:
 
-💡 Enjoy using *${AMASHIA-MD-BOT-V2}* 🚀`
+📢 WhatsApp Group:
+https://chat.whatsapp.com/LdT5MwR8Vhm7bMlQ3I05YF?mode=gi_t
+
+📺 WhatsApp Channel:
+https://whatsapp.com/channel/0029VbCqMJyCHDyeLQvGQR2k
+
+📋 Type *.menu* to explore all commands
+
+💡 Enjoy using *${botName}* 🚀`
       })
     }
 
-    // ================= COMMAND CHECK =================
+    // ================= COMMAND SYSTEM =================
     if (!body.startsWith(prefix)) return
 
     const args = body.slice(prefix.length).trim().split(" ")
@@ -98,15 +106,23 @@ async function startBot() {
 📋 COMMAND MENU:
 
 🎧 MEDIA
-.play <name> → Search music
+.play <song> → Search music
 .tiktok <link> → Download video
 
 📝 TEXT
 .lyrics <song> → Get lyrics
 .trad <lang> <text> → Translate text
 
-⚡ SYSTEM
-.menu → Show this menu
+👥 COMMUNITY
+.group → Join group
+.channel → Join channel
+
+🔗 LINKS:
+📢 Group:
+https://chat.whatsapp.com/LdT5MwR8Vhm7bMlQ3I05YF?mode=gi_t
+
+📺 Channel:
+https://whatsapp.com/channel/0029VbCqMJyCHDyeLQvGQR2k
 
 💡 Powered by AMASHIA MD SYSTEM 🚀`
       })
@@ -116,7 +132,8 @@ async function startBot() {
     if (command === "play") {
       const query = args.join(" ")
       await sock.sendMessage(from, {
-        text: `🎧 Searching: ${query}`
+        text: `🎧 Searching music for:
+${query}`
       })
     }
 
@@ -124,7 +141,8 @@ async function startBot() {
     if (command === "tiktok") {
       const link = args[0]
       await sock.sendMessage(from, {
-        text: `📥 Processing TikTok link:\n${link}`
+        text: `📥 Processing TikTok video:
+${link}`
       })
     }
 
@@ -134,13 +152,13 @@ async function startBot() {
       const text = args.slice(1).join(" ")
 
       await sock.sendMessage(from, {
-        text: `🌍 Translation Request:
+        text: `🌍 Translation request:
 Language: ${lang}
 Text: ${text}`
       })
     }
 
-    // 📝 LYRICS (placeholder)
+    // 📝 LYRICS
     if (command === "lyrics") {
       const song = args.join(" ")
 
@@ -149,8 +167,24 @@ Text: ${text}`
 ${song}`
       })
     }
+
+    // 👥 GROUP LINK
+    if (command === "group") {
+      await sock.sendMessage(from, {
+        text: `📢 Join our WhatsApp Group:
+https://chat.whatsapp.com/LdT5MwR8Vhm7bMlQ3I05YF?mode=gi_t`
+      })
+    }
+
+    // 📺 CHANNEL LINK
+    if (command === "channel") {
+      await sock.sendMessage(from, {
+        text: `📺 Subscribe to our Channel:
+https://whatsapp.com/channel/0029VbCqMJyCHDyeLQvGQR2k`
+      })
+    }
   })
 }
 
-// ================= RUN =================
+// ================= RUN BOT =================
 startBot()
