@@ -13,170 +13,99 @@ const prefix = process.env.BOT_PREFIX || "."
 const botName = process.env.BOT_NAME || "AMASHIA MD BOT V.2"
 const number = process.env.PAIRING_NUMBER
 
+// ================= START BOT =================
 async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState(
-    process.env.SESSIONS_DIR || "sessions"
-  )
-
-  const sock = makeWASocket({
-    auth: state,
-    printQRInTerminal: false,
-    logger: P({ level: "silent" })
-  })
-
-  if (!sock.authState.creds.registered) {
-    const code = await sock.requestPairingCode(number)
-    console.log("🔑 PAIRING CODE:", code)
-    web.setCode(code)
-  }
-
-  sock.ev.on("creds.update", saveCreds)
-
-  sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
-    if (connection === "open") {
-      console.log("✅ Connected:", botName)
-      web.setStatus("ONLINE 🟢")
+  try {
+    if (!number) {
+      console.log("❌ PAIRING_NUMBER missing in .env")
+      return
     }
 
-    if (connection === "close") {
-      web.setStatus("OFFLINE 🔴")
+    const { state, saveCreds } = await useMultiFileAuthState(
+      process.env.SESSIONS_DIR || "sessions"
+    )
 
-      const shouldReconnect =
-        lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
+    const sock = makeWASocket({
+      auth: state,
+      printQRInTerminal: false,
+      logger: P({ level: "silent" })
+    })
 
-      if (shouldReconnect) startBot()
+    // ================= PAIRING CODE =================
+    if (!sock.authState.creds.registered) {
+      const code = await sock.requestPairingCode(number)
+      console.log("🔑 PAIRING CODE:", code)
+      web.setCode(code)
     }
-  })
 
-  const welcomedUsers = new Set()
+    sock.ev.on("creds.update", saveCreds)
 
-  sock.ev.on("messages.upsert", async ({ messages }) => {
-    const msg = messages[0]
-    if (!msg.message) return
+    // ================= CONNECTION =================
+    sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
+      if (connection === "open") {
+        console.log("✅ Connected:", botName)
+        web.setStatus("ONLINE 🟢")
+      }
 
-    const from = msg.key.remoteJid
+      if (connection === "close") {
+        web.setStatus("OFFLINE 🔴")
 
-    web.addUser(from)
-    web.addMessage()
+        const shouldReconnect =
+          lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
 
-    const body =
-      msg.message.conversation ||
-      msg.message.extendedTextMessage?.text ||
-      ""
+        if (shouldReconnect) startBot()
+      }
+    })
 
-    // 👋 WELCOME
-    if (!welcomedUsers.has(from)) {
-      welcomedUsers.add(from)
+    const welcomedUsers = new Set()
 
-      await sock.sendMessage(from, {
-        image: {
-          url: "https://drive.google.com/uc?export=download&id=1-ONk_ZlyFGy3ne7rmZJkwk-8pcwB9WMJ"
-        },
-        caption: `👋 HELLO!
+    // ================= MESSAGES =================
+    sock.ev.on("messages.upsert", async ({ messages }) => {
+      const msg = messages[0]
+      if (!msg || !msg.message) return
+      if (msg.key.fromMe) return
+
+      const from = msg.key.remoteJid
+      web.addUser(from)
+      web.addMessage()
+
+      const body =
+        msg.message.conversation ||
+        msg.message.extendedTextMessage?.text ||
+        ""
+
+      // ================= WELCOME =================
+      if (!welcomedUsers.has(from)) {
+        welcomedUsers.add(from)
+
+        await sock.sendMessage(from, {
+          image: {
+            url: "https://drive.google.com/uc?export=download&id=1-ONk_ZlyFGy3ne7rmZJkwk-8pcwB9WMJ"
+          },
+          caption: `👋 HELLO!
 
 🤖 I am *${botName}*
 
-📌 I help with downloads, tools & automation
-
-🎧 Music download
-🎵 TikTok download
+🎧 Music Download
+🎵 TikTok Download
 🌍 Translation
 📝 Lyrics
-⚡ Automation tools
-
-👥 COMMUNITY:
-
-📢 Group:
-https://chat.whatsapp.com/LdT5MwR8Vhm7bMlQ3I05YF?mode=gi_t
-
-📺 Channel:
-https://whatsapp.com/channel/0029VbCqMJyCHDyeLQvGQR2k
+⚡ Automation Tools
 
 📋 Type *.menu* to start
 
-🚀 Enjoy using *${botName}*
-
-━━━━━━━━━━━━━━━
-⚙️ Made in *TOPFEROS TECH*
+🚀 Enjoy!
 ━━━━━━━━━━━━━━━`
-      })
-    }
+        })
+      }
 
-    if (!body.startsWith(prefix)) return
+      if (!body.startsWith(prefix)) return
 
-    const args = body.slice(prefix.length).trim().split(" ")
-    const command = args.shift().toLowerCase()
+      const args = body.slice(prefix.length).trim().split(" ")
+      const command = args.shift().toLowerCase()
 
-    if (command === "menu") {
-      await sock.sendMessage(from, {
-        text: `🤖 *${botName}*
-
-📋 COMMAND MENU:
-
-🎧 MEDIA
-.play <song>
-.tiktok <link>
-
-📝 TEXT
-.lyrics <song>
-.trad <lang> <text>
-
-👥 COMMUNITY
-.group
-.channel
-
-🔗 LINKS:
-📢 https://chat.whatsapp.com/LdT5MwR8Vhm7bMlQ3I05YF?mode=gi_t
-📺 https://whatsapp.com/channel/0029VbCqMJyCHDyeLQvGQR2k
-
-💡 Powered by AMASHIA 🚀
-⚙️ Made in *TOPFEROS TECH*`
-      })
-    }
-
-    if (command === "play") {
-      const query = args.join(" ")
-      await sock.sendMessage(from, {
-        text: `🎧 Searching: ${query}`
-      })
-    }
-
-    if (command === "tiktok") {
-      const link = args[0]
-      await sock.sendMessage(from, {
-        text: `📥 Processing TikTok:\n${link}`
-      })
-    }
-
-    if (command === "lyrics") {
-      const song = args.join(" ")
-      await sock.sendMessage(from, {
-        text: `📝 Searching lyrics:\n${song}`
-      })
-    }
-
-    if (command === "trad") {
-      const lang = args[0]
-      const text = args.slice(1).join(" ")
-      await sock.sendMessage(from, {
-        text: `🌍 Translate to ${lang}:\n${text}`
-      })
-    }
-
-    if (command === "group") {
-      await sock.sendMessage(from, {
-        text: `📢 Join Group:
-https://chat.whatsapp.com/LdT5MwR8Vhm7bMlQ3I05YF?mode=gi_t`
-      })
-    }
-
-    if (command === "channel") {
-      await sock.sendMessage(from, {
-        text: `📺 Join Channel:
-https://whatsapp.com/channel/0029VbCqMJyCHDyeLQvGQR2k`
-      })
-    }
-  })
-}
-
-startBot()
+      // ================= COMMANDS =================
+      switch (command) {
+        case "menu":
+          await sock.sendMessage(from, {
+            text: `🤖 *${bot
