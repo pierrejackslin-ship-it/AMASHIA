@@ -14,12 +14,10 @@ baileys_auth/
 creds.json
 
 # ==========================================
-# 🔑 ENVIRONMENT VARIABLES
+# 🔑 ENV FILES (DO NOT PUSH)
 # ==========================================
 .env
-.env.local
-.env.development
-.env.production
+.env.*
 
 # ==========================================
 # 🧾 LOG FILES
@@ -32,19 +30,18 @@ yarn-error.log*
 pnpm-debug.log*
 
 # ==========================================
-# 💻 OS / SYSTEM FILES
+# 💻 OS FILES
 # ==========================================
 .DS_Store
 Thumbs.db
-ehthumbs.db
 
 # ==========================================
-# 🗂️ TEMP / BACKUP FILES
+# 🗂️ TEMP / BACKUP
 # ==========================================
-*~
 *.bak
 *.tmp
 *.swp
+*~
 
 # ==========================================
 # 🏗️ BUILD / CACHE
@@ -56,29 +53,13 @@ build/
 out/
 
 # ==========================================
-# ⚙️ GENERATED / BIN
-# ==========================================
-bin/
-tmp/
-temp/
-
-# ==========================================
-# 🧠 IDE / EDITOR FILES
+# 🧠 IDE / EDITOR
 # ==========================================
 .vscode/
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
 
 # ==========================================
-# 🐳 DOCKER (si ou itilize li pita)
-# ==========================================
-docker-compose.override.yml
-
-# ==========================================
-# 🔒 SECURITY (PA JANM UPLOAD SA YO)
+# 🔒 SECURITY FILES
 # ==========================================
 *.key
 *.pem
