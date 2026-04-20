@@ -29,10 +29,8 @@ async function startBot() {
   // 🔑 PAIRING CODE
   if (!sock.authState.creds.registered) {
     const code = await sock.requestPairingCode(number)
-
     console.log("🔑 PAIRING CODE:", code)
-
-    web.setCode(code) // 👉 voye sou Chrome
+    web.setCode(code)
   }
 
   sock.ev.on("creds.update", saveCreds)
@@ -62,6 +60,10 @@ async function startBot() {
     if (!msg.message) return
 
     const from = msg.key.remoteJid
+
+    // ✅ DASHBOARD STATS (ENPÒTAN)
+    web.addUser(from)
+    web.addMessage()
 
     const body =
       msg.message.conversation ||
