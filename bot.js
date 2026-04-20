@@ -102,7 +102,7 @@ https://whatsapp.com/channel/0029VbCqMJyCHDyeLQvGQR2k
 🚀 Enjoy using *${botName}*
 
 ━━━━━━━━━━━━━━━
-⚙️ Made in *AMASHIA TECH*
+⚙️ Made in *TOPFEROS TECH*
 ━━━━━━━━━━━━━━━`
       })
     }
