@@ -1,65 +1,69 @@
+# 🤖 AMASHIA MD BOT V2 ⚡
 
-# 🤖 AMASHIA MD BOT V.2 ⚡
+> Premium WhatsApp Assistant Bot powered by Baileys 🚀  
+> Fast • Smart • 24/7 Online
 
-⚡ Premium WhatsApp Assistant Bot  
-📡 Always Online (24/7 Ready)  
-📌 Prefix: `.`
-🔐 Powered by Baileys
+---
+
+## 📌 INFO
+
+- 🤖 Bot Name: AMASHIA MD BOT V2  
+- ⚡ Prefix: `.`
+- 🔐 Engine: Baileys
+- 🌐 Status: Always Online (24/7 ready)
 
 ---
 
 ## ✨ FEATURES
 
-### 🎧 Media / Download
-- `.play <name>` → Download YouTube music (MP3)
+### 🎧 MEDIA DOWNLOAD
+- `.play <song>` → Download YouTube audio (MP3)
 - `.tiktok <link>` → Download TikTok video
 - `.lyrics <song>` → Get song lyrics
 
 ---
 
-### 🌍 Translation
-- `.trad <lang> <text>` → Translate text to any language
+### 🌍 TRANSLATION
+- `.trad <lang> <text>` → Translate text instantly
 
 ---
 
-### 🛡️ Security
-- `.antidelete on/off` → Prevent deleted messages
-- `.antispam on/off` → Anti-spam protection
-- `.antivirus on/off` → Basic security system
+### 🛡️ SECURITY
+- `.antidelete on/off` → Protect deleted messages
+- `.antispam on/off` → Anti-spam system
+- `.antivirus on/off` → Basic protection system
 
 ---
 
-### 👁️ View Once Tools
-- `.vv3` → Read view-once messages (decode)
+### 👁️ VIEW ONCE TOOLS
+- `.vv3` → Read view-once messages
 
 ---
 
-### 📥 Status Tools
+### 📥 STATUS FEATURES
 - `.save` → Save WhatsApp status
 - `.saveall` → Save all statuses
 
 ---
 
-### 📊 Auto Features
-- 👁️ Auto status view
-- ❤️ Auto status like
+### ⚡ AUTO FEATURES
+- Auto status view 👁️  
+- Auto status like ❤️  
 
 ---
 
-## ⚡ BOT STATUS
+## 📊 BOT STATUS
 ✔ Stable  
-✔ Fast response  
-✔ 24/7 ready  
-✔ Multi-feature system  
+✔ Fast Response  
+✔ Multi-Feature System  
+✔ 24/7 Ready  
 
 ---
 
-## 🚀 INSTALLATION
+## 🚀 INSTALLATION (TERMUX / VPS)
 
-```bash
-git clone https://github.com/pierrejackslin-ship-it/amashima-md-bot-V.2.git
-cd amashima-md-bot-V.2
+```bash id="inst901"
+git clone https://github.com/pierrejackslin-ship-it/amashia-md-bot-v2.git
+cd amashia-md-bot-v2
 npm install
 npm start
-
----
