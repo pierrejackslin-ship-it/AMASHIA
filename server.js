@@ -8,26 +8,24 @@ let botStatus = "OFFLINE"
 let totalMessages = 0
 let totalUsers = new Set()
 
-const ADMIN_PASSWORD = "1234" // 🔐 chanje sa
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "amashia"
 
-// ================= LOGIN PAGE =================
+// ================= HOME LOGIN =================
 app.get("/", (req, res) => {
   res.send(`
   <html>
   <body style="background:#111;color:white;text-align:center;padding:50px;font-family:Arial">
-    <h2>🔐 AMASHIA ADMIN LOGIN</h2>
+    <h2>🔐 AMASHIA BOT LOGIN</h2>
+
     <input id="pass" type="password" placeholder="Enter password"/>
     <br><br>
+
     <button onclick="login()">Login</button>
 
     <script>
       function login(){
         const pass = document.getElementById("pass").value
-        if(pass === "${ADMIN_PASSWORD}"){
-          window.location.href = "/dashboard"
-        } else {
-          alert("Wrong password")
-        }
+        window.location.href = "/dashboard?pass=" + pass
       }
     </script>
   </body>
@@ -35,15 +33,25 @@ app.get("/", (req, res) => {
   `)
 })
 
+// ================= AUTH CHECK =================
+function checkAuth(req, res, next) {
+  const pass = req.query.pass
+  if (pass !== ADMIN_PASSWORD) {
+    return res.send("❌ Unauthorized Access")
+  }
+  next()
+}
+
 // ================= DASHBOARD =================
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard", checkAuth, (req, res) => {
   res.send(`
   <html>
   <head>
     <title>AMASHIA DASHBOARD</title>
+
     <script>
       async function loadData(){
-        const res = await fetch('/api')
+        const res = await fetch('/api?pass=${ADMIN_PASSWORD}')
         const data = await res.json()
 
         document.getElementById("status").innerText = data.status
@@ -60,14 +68,14 @@ app.get("/dashboard", (req, res) => {
       }
 
       async function restartBot(){
-        await fetch('/restart')
+        await fetch('/restart?pass=${ADMIN_PASSWORD}')
         alert("Bot restarting...")
       }
     </script>
   </head>
 
   <body style="background:#0d0d0d;color:white;text-align:center;padding:40px;font-family:Arial">
-    
+
     <h1 style="color:#00ff99">🤖 AMASHIA MD BOT</h1>
 
     <p>Status: <b id="status">...</b></p>
@@ -92,7 +100,7 @@ app.get("/dashboard", (req, res) => {
 })
 
 // ================= API =================
-app.get("/api", (req, res) => {
+app.get("/api", checkAuth, (req, res) => {
   res.json({
     code: pairingCode,
     status: botStatus,
@@ -101,20 +109,23 @@ app.get("/api", (req, res) => {
   })
 })
 
-// ================= RESTART =================
-app.get("/restart", (req, res) => {
+// ================= RESTART BOT =================
+app.get("/restart", checkAuth, (req, res) => {
+  res.send("Restarting...")
   process.exit()
 })
 
-// ================= START SERVER =================
-app.listen(3000, () => {
-  console.log("🌐 Dashboard: http://localhost:3000")
-})
-
-// ================= EXPORT =================
+// ================= EXPORT FUNCTIONS =================
 module.exports = {
-  setCode: (c) => pairingCode = c,
-  setStatus: (s) => botStatus = s,
+  setCode: (c) => (pairingCode = c),
+  setStatus: (s) => (botStatus = s),
   addUser: (u) => totalUsers.add(u),
   addMessage: () => totalMessages++
 }
+
+// ================= START SERVER =================
+const PORT = process.env.PORT || 3000
+
+app.listen(PORT, () => {
+  console.log("🌐 Dashboard running on port", PORT)
+})
