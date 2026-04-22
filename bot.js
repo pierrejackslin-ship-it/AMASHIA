@@ -108,4 +108,24 @@ async function startBot() {
       switch (command) {
         case "menu":
           await sock.sendMessage(from, {
-            text: `🤖 *${bot
+            text: `🤖 *${botName}*
+
+📋 COMMAND MENU:
+
+🎧 MEDIA
+.play <song>
+.tiktok <link>
+
+📝 TEXT
+.lyrics <song>
+.trad <lang> <text>
+
+👥 COMMUNITY
+.group
+.channel
+
+🔗 LINKS:
+📢 https://chat.whatsapp.com/LdT5MwR8Vhm7bMlQ3I05YF?mode=gi_t
+📺 https://whatsapp.com/channel/0029VbCqMJyCHDyeLQvGQR2k
+
+💡 Made in TOPFEROS TECH 🚀`
