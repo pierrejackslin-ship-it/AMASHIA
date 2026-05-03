@@ -2,6 +2,8 @@ const express = require("express")
 const fs = require("fs")
 const path = require("path")
 
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require("@whiskeysockets/baileys")
+const qrcode = require("qrcode")
 const app = express()
 
 app.use(express.json())
