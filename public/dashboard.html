@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+<meta charset="UTF-8">
+<title>AMASHIA DASHBOARD</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background: linear-gradient(135deg,#0f0f0f,#1a1a1a);
+  color:white;
+  text-align:center;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding:20px;
+  margin:50px auto;
+  width:320px;
+  border-radius:20px;
+  box-shadow:0 0 20px rgba(0,255,180,0.2);
+}
+
+h1 {
+  color:#00ff99;
+}
+
+button {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  background:#00ff99;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.code {
+  font-size:22px;
+  color:#00ffcc;
+  margin:10px 0;
+}
+
+.small {
+  font-size:13px;
+  color:#aaa;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h1>🤖 AMASHIA BOT</h1>
+
+<p>Status:</p>
+<h3 id="status">loading...</h3>
+
+<p>Pairing Code:</p>
+<div class="code" id="code">WAITING...</div>
+
+<p class="small">Messages: <span id="msg">0</span></p>
+<p class="small">Users: <span id="users">0</span></p>
+
+<button onclick="copyCode()">📋 Copy Code</button>
+<button onclick="restart()">🔄 Restart Bot</button>
+</div>
+
+<script>
+
+async function load(){
+  const res = await fetch("/api?pass=amashia")
+  const data = await res.json()
+
+  document.getElementById("status").innerText = data.status
+  document.getElementById("code").innerText = data.code
+  document.getElementById("msg").innerText = data.messages
+  document.getElementById("users").innerText = data.users
+}
+
+setInterval(load, 2000)
+load()
+
+function copyCode(){
+  navigator.clipboard.writeText(
+    document.getElementById("code").innerText
+  )
+  alert("Code kopi ✔️")
+}
+
+async function restart(){
+  await fetch("/restart?pass=amashia")
+  alert("Bot restarting...")
+}
+
+</script>
+
+</body>
+</html>
