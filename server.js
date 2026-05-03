@@ -1,5 +1,6 @@
 const express = require("express")
 const fs = require("fs")
+const { injectSpeedInsights } = require("@vercel/speed-insights")
 const app = express()
 
 app.use(express.json())
@@ -10,6 +11,30 @@ let totalMessages = 0
 let totalUsers = new Set()
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "amashia"
+
+// ================= SPEED INSIGHTS =================
+// Initialize Speed Insights for Vercel analytics
+injectSpeedInsights()
+
+// Helper function to inject Speed Insights script into HTML
+function addSpeedInsights(html) {
+  // Add the Speed Insights script before closing </head> or </body> tag
+  const speedInsightsScript = `
+    <script>
+      window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/speed-insights/script.js"></script>
+  `
+  
+  // Try to inject before </head>, otherwise before </body>
+  if (html.includes('</head>')) {
+    return html.replace('</head>', `${speedInsightsScript}\n  </head>`)
+  } else if (html.includes('</body>')) {
+    return html.replace('</body>', `${speedInsightsScript}\n  </body>`)
+  }
+  
+  return html
+}
 
 // ================= DATABASE =================
 const dbFile = "./database.json"
@@ -25,7 +50,7 @@ function saveDB(data){
 
 // ================= HOME LOGIN =================
 app.get("/", (req, res) => {
-  res.send(`
+  const html = `
   <html>
   <body style="background:#111;color:white;text-align:center;padding:50px;font-family:Arial">
     <h2>🔐 AMASHIA BOT LOGIN</h2>
@@ -43,7 +68,8 @@ app.get("/", (req, res) => {
     </script>
   </body>
   </html>
-  `)
+  `
+  res.send(addSpeedInsights(html))
 })
 
 // ================= AUTH =================
@@ -57,7 +83,7 @@ function checkAuth(req, res, next) {
 
 // ================= DASHBOARD =================
 app.get("/dashboard", checkAuth, (req, res) => {
-  res.send(`
+  const html = `
   <html>
   <head>
     <title>AMASHIA DASHBOARD</title>
@@ -109,7 +135,8 @@ app.get("/dashboard", checkAuth, (req, res) => {
 
   </body>
   </html>
-  `)
+  `
+  res.send(addSpeedInsights(html))
 })
 
 // ================= API =================
@@ -126,7 +153,7 @@ app.get("/api", checkAuth, (req, res) => {
 app.get("/referral", (req, res) => {
   const code = req.query.code
 
-  res.send(`
+  const html = `
   <html>
   <body style="background:#111;color:white;text-align:center;padding:40px;font-family:Arial">
 
@@ -140,7 +167,8 @@ app.get("/referral", (req, res) => {
 
   </body>
   </html>
-  `)
+  `
+  res.send(addSpeedInsights(html))
 })
 
 // ================= TRACK REF =================
