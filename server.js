@@ -14,6 +14,9 @@ let botStatus = "OFFLINE"
 let totalMessages = 0
 let totalUsers = new Set()
 
+let sock = null
+let qrCodeBase64 = null
+
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "amashia"
 
 // ================= DATABASE =================
@@ -103,6 +106,71 @@ app.get("/ref", (req, res) => {
 })
 
 // ================= EXPORT FUNCTIONS =================
+async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState("auth")
+
+  sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: true
+  })
+
+  sock.ev.on("creds.update", saveCreds)
+
+  sock.ev.on("connection.update", async (update) => {
+    const { connection, qr, lastDisconnect } = update
+
+    if (qr) {
+      qrCodeBase64 = await qrcode.toDataURL(qr)
+      botStatus = "QR_READY"
+    }
+
+    if (connection === "open") {
+      botStatus = "CONNECTED"
+      qrCodeBase64 = null
+    }
+
+    if (connection === "close") {
+      const shouldReconnect =
+        lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
+
+      botStatus = "DISCONNECTED"
+
+      if (shouldReconnect) {
+        startBot()
+      }
+    }
+  })
+
+  sock.ev.on("messages.upsert", () => {
+    totalMessages++
+  })
+}
+app.get("/qr", (req, res) => {
+  if (!qrCodeBase64) {
+    return res.json({ status: botStatus, qr: null })
+  }
+
+  res.json({
+    status: botStatus,
+    qr: qrCodeBase64
+  })
+})
+app.post("/pair", async (req, res) => {
+  const { number } = req.body
+
+  if (!number) {
+    return res.status(400).json({ error: "Number required" })
+  }
+
+  botStatus = "STARTING"
+
+  startBot()
+
+  return res.json({
+    success: true,
+    message: "QR ap parèt sou /qr"
+  })
+})
 module.exports = {
   setCode: (c) => (pairingCode = c),
   setStatus: (s) => (botStatus = s),
@@ -116,3 +184,4 @@ const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
   console.log("🌐 Dashboard running on port", PORT)
 })
+startBot()
