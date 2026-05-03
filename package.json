@@ -16,6 +16,7 @@
     "node": ">=18.x"
   },
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "@whiskeysockets/baileys": "^6.7.0",
     "dotenv": "^16.4.0",
     "express": "^4.19.2",
